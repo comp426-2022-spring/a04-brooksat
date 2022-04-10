@@ -50,7 +50,7 @@ if(args.log != false) {
     app.use(morgan('combined', {stream: accesslog}))
 }
 
-app.use('app/new/log', (req, res, next) => {
+app.use((req, res, next) => {
     let logdata = {
       remoteaddr: req.ip,
       remoteuser: req.user,
