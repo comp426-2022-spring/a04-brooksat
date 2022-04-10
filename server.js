@@ -72,12 +72,9 @@ app.post('app/new/log', (req, res, next) => {
 })
 
 app.get('/app/log/access', (req, res) => {
-    try {
       const stmt = logdb.prepare('SELECT * FROM accesslog').all()
       res.status(200).json(stmt)
-    } catch (e) {
-        console.error(e)
-    }
+
 })
 
 app.get('/app/error', (req, res) => {
