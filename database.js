@@ -9,7 +9,7 @@ if(row === undefined) {
     console.log('Log database missing')
 
     const sqlInit = `
-        CREATE TABLE accesslog (id INTEGER NOT NULL PRIMARY KEY, remoteaddr INTEGER, remoteuser TEXT, time INTEGER, method TEXT, url TEXT, protocol TEXT, httpversion TEXT, status INTEGER, referer TEXT, useragent TEXT);
+        CREATE TABLE accesslog ( id INTEGER PRIMARY KEY, remoteaddr TEXT, remoteuser TEXT, time INTEGER, method TEXT, url TEXT, protocol TEXT, httpversion TEXT, status INTEGER, referer TEXT, useragent TEXT);
     `;
 
     logdb.exec(sqlInit)

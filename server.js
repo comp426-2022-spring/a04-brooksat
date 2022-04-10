@@ -7,8 +7,6 @@ const morgan = require('morgan')
 const fs = require('fs')
 // require database script file
 const logdb = require('./database.js')
-//require md5 module
-//var md5 = require('md5')
 // Make express use its own built-in body parser
 app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
@@ -17,8 +15,8 @@ app.use(express.json());
 // take an arbitrary port number as a command line argument 
 // Default: 5000
 const args = require('minimist')(process.argv.slice(2))
-args['port']
-const port = args.port || 5555
+
+const port = args.port || process.env.PORT || 5555
 
 // start app server
 const server = app.listen(port, () => {
@@ -52,17 +50,6 @@ if(args.log != false) {
     app.use(morgan('combined', {stream: accesslog}))
 }
 
-
-if(args.debug) {
-  app.get('app/log/access', (req, res) => {
-      const stmt = logdb.prepare('SELECT * FROM accesslog').all()
-      res.status(200).json(stmt)
-  })
-  app.get('/app/error', (req, res) => {
-    throw new Error("Error test successful")
-  })
-}
-
 app.use('app/new/log', (req, res, next) => {
     let logdata = {
       remoteaddr: req.ip,
@@ -82,6 +69,16 @@ app.use('app/new/log', (req, res, next) => {
     
     next()
 })
+
+if(args.debug) {
+  app.get('app/log/access', (req, res) => {
+      const stmt = logdb.prepare('SELECT * FROM accesslog').all()
+      res.status(200).json(stmt)
+  })
+  app.get('/app/error', (req, res) => {
+    throw new Error("Error test successful")
+  })
+}
 
 app.get('/app/log/access', (req, res) => {
       const stmt = logdb.prepare('SELECT * FROM accesslog').all()
