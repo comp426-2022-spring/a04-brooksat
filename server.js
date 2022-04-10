@@ -81,7 +81,7 @@ app.get('/app/log/access', (req, res) => {
 })
 
 app.get('/app/error', (req, res) => {
-  throw new error ('Error test successful-1')
+  throw new error ('Error test successful')
 })
 // logging middleware
 // const logging=(req, res, next) => {
@@ -257,6 +257,7 @@ function coinFlip() {
    * 
    * @param {string} call 
    * @returns {object} with keys that are the input param (heads or tails), a flip (heads or tails), and the result (win or lose). See below example.
+   * 
    * example: flipACoin('tails')
    * returns: { call: 'tails', flip: 'heads', result: 'lose' }
    */
