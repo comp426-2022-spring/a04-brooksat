@@ -20,6 +20,11 @@ const args = require('minimist')(process.argv.slice(2))
 args['port']
 const port = args.port || 5555
 
+// start app server
+const server = app.listen(port, () => {
+  console.log('App listening on port %PORT%'.replace('%PORT%', port))
+})
+
 const help = (`
 server.js [options]
 
@@ -57,12 +62,8 @@ if(args.debug) {
     throw new Error("Error test successful")
   })
 }
-// start app server
-const server = app.listen(port, () => {
-  console.log('App listening on port %PORT%'.replace('%PORT%', port))
-})
 
-app.post('app/new/log', (req, res, next) => {
+app.use('app/new/log', (req, res, next) => {
     let logdata = {
       remoteaddr: req.ip,
       remoteuser: req.user,
@@ -80,7 +81,6 @@ app.post('app/new/log', (req, res, next) => {
     const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
     
     next()
-    res.status(200).json(info)
 })
 
 app.get('/app/log/access', (req, res) => {
@@ -92,11 +92,6 @@ app.get('/app/log/access', (req, res) => {
 app.get('/app/error', (req, res) => {
   throw new error ('Error test successful')
 })
-// logging middleware
-// const logging=(req, res, next) => {
-//   console.log(req.ip + '- -' + Date.now() + res.statusCode + res.bytes)
-//   next()
-// }
 
 //2202-03-08 comp 426
 //CREATE a new user (HTTP method post) at endpoint /app/new/
@@ -147,29 +142,6 @@ app.delete('/app/delete/user/:id', (req, res) => {
     res.status(200).json()
 })
 
-
-
-// app.use(logging)
-
-// // using morgan for logging
-// let logging = (morgan('combined'))
-
-// // app.use(logging('common', fs.writeFile))
-
-// // consol.log()
-// // consol.error()
-// // console.warn()
-// // console.debug()
-// // console.trace()
-
-// app.use(fs.writeFile('./access.log', data, {flag: 'a'}, (err, req, res, next) => {
-//   if (err) {
-//     console.error(err)
-//   } else {
-//     console.log()
-//   }
-// }))
-
 //Define base endpoint
 app.get('/app/', (req, res) => {
     res.statusCode=200 //respond with status 200
@@ -183,138 +155,3 @@ app.get('/app/echo/:number',  (req, res) => {
     res.status(200).json({ 'message': req.params.number})
 })
 
-// /app/flip/ will be used to tesst single flip without import coin.mjs
-app.get('/app/flip/', (req, res) => {
-    const flip = coinFlip()
-    res.status(200).json({ 'flip': flip})
-})
-
-// /app/flips/:number is many flips 
-app.get('/app/flips/:number', (req, res) => {
-    const flips = coinFlips(req.params.number)
-    const tails = countTails(flips)
-    const heads = countHeads(flips)
-    res.status(200).json({'raw': flips, 'summary': {'heads': heads, 'tails': tails}})
-})
-
-// /app/flip/call/heads filp a coing with a call to heads
-app.get('/app/flip/call/heads', (req, res) => {
-    const str = 'heads'
-    const flip = coinFlip()
-    const result = win(flip, str)
-    res.status(200).json({ 'call': str, 'flip': flip, 'result': result})
-})
-
-// /app/flip/call/tails filp a coing with a call to tails
-app.get('/app/flip/call/tails', (req, res) => {
-  const str = 'tails'
-  const flip = coinFlip()
-  const result = win(flip, str)
-  res.status(200).json({ 'call': str, 'flip': flip, 'result': result})
-})
-
-//Define default endpoint
-//default response for any other request
-app.use(function(req, res) {
-    res.status(404).send('404 NOT FOUND')
-})
-
-
-
-// Functions
-
-function coinFlip() {
-    let x = Math.random()
-    if(x >= 0.5) {
-      return 'heads'
-    } else {
-      return 'tails'
-    }
-  }
-
-  function coinFlips(number) {
-    var tosses = []
-    for (var i = 0; i < number; i++) {
-      tosses.push(coinFlip())
-    }
-    return tosses
-  }
-
-  function countFlips(array) {
-    let count_tails = 0
-    let count_heads = 0
-    for(let i = 0; i < array.length; i++) {
-      if(array[i] == 'tails') {
-        count_tails++;
-      } else if(array[i] == 'heads') {
-        count_heads++;
-      }
-    }
-  
-    if(count_tails == 0) {
-      return('{ heads: ' + count_heads + ' }')
-    } else if (count_heads == 0) {
-      return('{ tails: ' + count_tails + ' }')
-    } else {
-    return('{ heads: ' + count_heads + ', tails: ' + count_tails + ' }')
-    }
-  }
-  
-  /** Flip a coin!
-   * 
-   * Write a function that accepts one input parameter: a string either "heads" or "tails", flips a coin, and then records "win" or "lose". 
-   * 
-   * @param {string} call 
-   * @returns {object} with keys that are the input param (heads or tails), a flip (heads or tails), and the result (win or lose). See below example.
-   * 
-   * example: flipACoin('tails')
-   * returns: { call: 'tails', flip: 'heads', result: 'lose' }
-   */
-  
-  function flipACoin(call) {
-    if(call == null) {
-      return('Error: no input') //return error no input
-    }
-    if(call == 'heads' || call == 'tails') {
-      let flip = coinFlip()
-      let result = 'lose'
-      if(flip == call) {
-        result = 'win'
-      }
-      return("{ call: '" + call + "', flip: '" + flip + "', result: '" + result + "' }")
-    } else {
-      return('Usage: node guess-flip.js --call= [heads | tails]')
-  
-    }
-    
-  }
-
-  function win(flip, call) {
-    let result = 'lose'
-    if(flip == call) {
-      result = 'win'
-    }
-    return(result)
-  }
-  
-  function countTails(flips) {
-    let countT = 0;
-    for(var i = 0; i < flips.length; i++) {
-      if(flips[i] == 'tails') {
-        countT++;
-      }
-    }
-
-    return countT
-  }
-
-  function countHeads(flips) {
-    let countH = 0;
-    for(var i = 0; i < flips.length; i++) {
-      if(flips[i] == 'heads') {
-        countH++;
-      }
-    }
-
-    return countH
-  }
