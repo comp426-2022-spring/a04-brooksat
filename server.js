@@ -43,10 +43,20 @@ if(args.help || args.h) {
 }
 
 if(args.log != false) {
-    const acclog = fs.createWriteStream('access.log', { flags: 'a'})
-    app.use(morgan('combined', {stream: acclog}))
+    const accesslog = fs.createWriteStream('access.log', { flags: 'a'})
+    app.use(morgan('combined', {stream: accesslog}))
 }
 
+
+if(args.debug) {
+  app.get('app/log/access', (req, res) => {
+      const stmt = logdb.prepare('SELECT * FROM accesslog').all()
+      res.status(200).json(stmt)
+  })
+  app.get('/app/error', (req, res) => {
+    throw new Error("Error test successful")
+  })
+}
 // start app server
 const server = app.listen(port, () => {
   console.log('App listening on port %PORT%'.replace('%PORT%', port))
@@ -68,6 +78,8 @@ app.post('app/new/log', (req, res, next) => {
 
     const stmt = logdb.prepare('INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
     const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+    
+    next()
     res.status(200).json(info)
 })
 
